@@ -6,7 +6,7 @@ mod cmd;
 use std::env;
 
 
-use atty;
+
 mod utils;
 use anyhow::Result;
 #[derive(Parser)]
@@ -70,13 +70,11 @@ fn get_version_from_stdin()  -> Option<VersionReq> {
     if io::stdin().read_to_string(&mut buffer).is_err() {
         return None;
     }
-    let stripped_buffer = buffer.strip_suffix("\n");
-    if stripped_buffer.is_none() {
-        return None;
-    }
+    let stripped_buffer = buffer.strip_suffix('\n')?;
 
-    buffer = stripped_buffer.unwrap().to_string();
-    return Some(VersionReq::from_str(&buffer).unwrap());
+
+    buffer = stripped_buffer.to_string();
+    Some(VersionReq::from_str(&buffer).unwrap())
 }
 
 
