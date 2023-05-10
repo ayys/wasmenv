@@ -11,7 +11,7 @@
 
 To install `wasmerenv` from crates.io:
 ```shell
-cargo install wasmerenv
+cargo install wasmerenv # Not possible ATM because I am not publishing to crates.io right now
 ```
 
 To install `wasmerenv`, clone the repository and build it using Cargo:
@@ -34,6 +34,7 @@ Commands:
   shell    Configure wasmerenv for a specific shell (bash, zsh, fish)
   use      Install wasmer
   list     List all the available versions of wasmer
+  exec     Run command with wasmer
   help     Print this message or the help of the given subcommand(s)
 
 Options:
