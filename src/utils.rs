@@ -1,12 +1,16 @@
 use chrono::DateTime;
 use directories::BaseDirs;
-use dirs::{cache_dir, config_dir, home_dir};
+use dirs::{cache_dir, config_dir, data_dir};
+use anyhow;
+use which::which;
+
 use flate2::read::GzDecoder;
 use is_executable::IsExecutable;
-use semver::Version;
+use semver::{Version, VersionReq};
 use serde::{Deserialize, Serialize};
 use std::fs::{create_dir_all, File};
 use std::io::{copy, Write};
+
 use std::{env, fs};
 
 use std::path::{PathBuf, Path};
@@ -20,13 +24,13 @@ use std::time::Duration;
 
 use indicatif::{ProgressBar, ProgressStyle};
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct ReleaseAsset {
     pub name: String,
     pub browser_download_url: String,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct Release {
     pub tag_name: String,
     pub prerelease: bool,
@@ -69,11 +73,24 @@ impl Release {
     }
 }
 
+/// Fetches the list of releases from the Wasmer GitHub repository and returns them as a vector
+/// of `Release` objects.
+///
+/// # Examples
+///
+/// ```
+/// use wasmerenv::Release;
+///
+/// let releases = wasmerenv::list_releases().unwrap();
+/// for release in releases {
+///     println!("{} ({})", release.tag_name, release.published_time());
+/// }
+/// ```
 pub fn list_releases() -> Result<Vec<Release>, reqwest::Error> {
     let url = "https://api.github.com/repos/wasmerio/wasmer/releases";
     let client = reqwest::blocking::Client::new();
     let response = client.get(url).header("User-Agent", "wasmerenv").send()?;
-    response.json()
+    return response.json();
 }
 
 pub fn list_releases_interactively() -> Result<Vec<Release>, reqwest::Error> {
@@ -99,6 +116,21 @@ pub fn get_filename_for_system_architecture(target_os: &str, target_arch: &str) 
     filename.to_string()
 }
 
+
+fn version_from_version_string(version_string: String) -> anyhow::Result<Version> {
+    match version_string
+        .trim()
+        .trim_start_matches("wasmer ")
+        .parse::<Version>() {
+            Ok(version) => {
+                return Ok(version);
+            },
+            Err(_) => {
+                return Err(anyhow::anyhow!("Could not get wasmer version form the version string"));
+            }
+        }
+}
+
 /// Searches for the system Wasmer binary and returns its version.
 ///
 /// Returns `None` if Wasmer is not installed or the installed version is not compatible.
@@ -116,12 +148,13 @@ pub fn find_system_wasmer() -> Option<Version> {
     if let Some(wasmer_path) = wasmer_path {
         let output = Command::new(wasmer_path).arg("--version").output().ok()?;
         if output.status.success() {
-            let version = String::from_utf8_lossy(&output.stdout)
-                .trim()
-                .trim_start_matches("wasmer ")
-                .parse::<Version>()
-                .ok()?;
-            return Some(version);
+            let version_str = String::from_utf8_lossy(&output.stdout).to_string();
+            if let Ok(version) = version_from_version_string(version_str) {
+                return Some(version);
+            } else {
+                return None;
+            }
+
         }
     }
     None
@@ -133,15 +166,17 @@ pub fn find_system_wasmer() -> Option<Version> {
 pub fn find_current_wasmer() -> Option<Version> {
     let output = Command::new("wasmer").arg("--version").output().ok()?;
     if output.status.success() {
-        let version = String::from_utf8_lossy(&output.stdout)
-            .trim()
-            .trim_start_matches("wasmer ")
-            .parse::<Version>()
-            .ok()?;
-        return Some(version);
+        let version_str = String::from_utf8_lossy(&output.stdout).to_string();
+        if let Ok(version) = version_from_version_string(version_str) {
+            return Some(version);
+        }
     }
-
     None
+}
+
+/// Finds the location of current wasmer executable
+pub fn find_current_wasmer_dir() -> anyhow::Result<PathBuf> {
+    Ok(which("wasmer")?.parent().expect("path to wasmer executable").to_path_buf())
 }
 
 
@@ -158,6 +193,7 @@ pub fn download_wasmer_to_cache(release: &Release) -> anyhow::Result<PathBuf> {
     if filepath.exists() {
         return Ok(filepath);
     }
+    println!("downloading to {}", filepath.to_str().unwrap());
 
     create_dir_all(filepath.parent().unwrap())?;
 
@@ -243,48 +279,111 @@ fn create_config_files(config_dir: &Path, wasmer_current_dir: &str) -> anyhow::R
     Ok(())
 }
 
-fn setup_config_directory() -> anyhow::Result<()> {
-    let config_dir = config_dir()
-        .expect("Config directory should be present")
-        .join("wasmerenv");
-    if config_dir.exists() {
-        return Ok(());
-    }
 
-    let home_dir = home_dir().expect("Could not get home directory");
-    let wasmer_current_dir = home_dir.join(".wasmerenv/current");
-    if !wasmer_current_dir.exists() {
-        fs::create_dir_all(&wasmer_current_dir)?;
-    }
-    let wasmer_current_dir = wasmer_current_dir.to_str().unwrap();
-
-    create_config_files(&config_dir, wasmer_current_dir)?;
-
-    Ok(())
+/// returns path to wasmerenv config directory
+pub fn wasmerenv_config_dir() -> anyhow::Result<PathBuf> {
+    let (config_dir, _) = setup_config_directory()?;
+    Ok(config_dir)
 }
 
-pub fn wasmerenv_config_dir() -> anyhow::Result<PathBuf> {
-    setup_config_directory()?;
+fn setup_config_directory() -> anyhow::Result<(PathBuf, PathBuf)> {
     let config_dir = config_dir()
         .expect("Config directory should be present")
         .join("wasmerenv");
     if !config_dir.exists() {
         fs::create_dir_all(&config_dir)?;
     }
-    Ok(config_dir)
+    let data_dir = data_dir().expect("Data directory should be present");
+    let wasmer_current_dir = data_dir.join("wasmerenv/current");
+    if !wasmer_current_dir.exists() {
+        fs::create_dir_all(&wasmer_current_dir)?;
+    }
+
+    create_config_files(&config_dir, wasmer_current_dir.to_str().expect("String containing wasmer current path"))?;
+
+    Ok((config_dir, wasmer_current_dir))
 }
 
+
+
+/// check if WASMERENV_DIR exists, because that means wasmerenv has been properly setup
 pub fn verify_wasmerenv_is_in_path() -> anyhow::Result<()> {
     match env::var("WASMERENV_DIR") {
         Ok(_) => {
             return Ok(());
         }
         Err(_) => {
-            eprintln!(
-                "Looks like you haven't initialized wasmerenv.\n\
+            return Err(anyhow::anyhow!(
+                "Looks like you haven't initializedzs wasmerenv.\n\
                 run `wasmerenv shell | source` to initialize it.\n"
-            );
+            ));
         }
     }
-    Ok(())
+}
+
+pub fn release_to_install(version: &Option<VersionReq>) -> anyhow::Result<Option<Release>> {
+    let releases = list_releases_interactively()?;
+
+    let release = if let Some(req) = version {
+        releases.into_iter().find(|rel| req.matches(&rel.version())).clone()
+    } else {
+        releases.first().cloned()
+    };
+    return Ok(release);
+}
+
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::env;
+
+    #[test]
+    fn test_wasmerenv_config_dir() -> anyhow::Result<()> {
+        let result = wasmerenv_config_dir()?;
+        assert!(result.exists());
+        assert!(result.ends_with("wasmerenv"));
+        Ok(())
+    }
+
+    #[test]
+    fn test_list_releases() -> anyhow::Result<()> {
+        let releases = list_releases()?;
+        assert!(releases.len() > 0);
+        Ok(())
+    }
+
+    #[test]
+    fn test_verify_wasmerenv_is_in_path() {
+        // Test the case where WASMERENV_DIR is set
+        env::set_var("WASMERENV_DIR", "/path/to/wasmerenv");
+        assert!(verify_wasmerenv_is_in_path().is_ok());
+
+        // Test the case where WASMERENV_DIR is not set
+        env::remove_var("WASMERENV_DIR");
+        let result = verify_wasmerenv_is_in_path();
+        assert!(result.is_err());
+        assert_eq!(
+            result.unwrap_err().to_string(),
+            "Looks like you haven't initialized wasmerenv.\n\
+            run `wasmerenv shell | source` to initialize it.\n"
+        );
+    }
+
+    #[test]
+    fn test_version_from_version_string() {
+        // Test the case where the version string is valid
+        let version_string = "wasmer 1.0.0".to_string();
+        let version = version_from_version_string(version_string.clone()).unwrap();
+        assert_eq!(version.to_string(), "1.0.0");
+
+        // Test the case where the version string is invalid
+        let version_string = "invalid version string".to_string();
+        let result = version_from_version_string(version_string.clone());
+        assert!(result.is_err());
+        assert_eq!(
+            result.unwrap_err().to_string(),
+            "Could not get wasmer version form the version string"
+        );
+    }
 }
