@@ -1,5 +1,7 @@
 [package]
 name = "wasmerenv"
+description = "Wasmerenv - a version manager for wasmer"
+license = "MIT"
 version = "0.1.0"
 edition = "2021"
 
