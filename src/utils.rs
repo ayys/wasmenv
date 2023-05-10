@@ -1,7 +1,7 @@
 use chrono::DateTime;
 use directories::BaseDirs;
 use dirs::{cache_dir, config_dir, data_dir};
-use anyhow;
+
 use which::which;
 
 use flate2::read::GzDecoder;
@@ -90,7 +90,7 @@ pub fn list_releases() -> Result<Vec<Release>, reqwest::Error> {
     let url = "https://api.github.com/repos/wasmerio/wasmer/releases";
     let client = reqwest::blocking::Client::new();
     let response = client.get(url).header("User-Agent", "wasmerenv").send()?;
-    return response.json();
+    response.json()
 }
 
 pub fn list_releases_interactively() -> Result<Vec<Release>, reqwest::Error> {
@@ -123,10 +123,10 @@ fn version_from_version_string(version_string: String) -> anyhow::Result<Version
         .trim_start_matches("wasmer ")
         .parse::<Version>() {
             Ok(version) => {
-                return Ok(version);
+                Ok(version)
             },
             Err(_) => {
-                return Err(anyhow::anyhow!("Could not get wasmer version form the version string"));
+                Err(anyhow::anyhow!("Could not get wasmer version form the version string"))
             }
         }
 }
@@ -310,13 +310,13 @@ fn setup_config_directory() -> anyhow::Result<(PathBuf, PathBuf)> {
 pub fn verify_wasmerenv_is_in_path() -> anyhow::Result<()> {
     match env::var("WASMERENV_DIR") {
         Ok(_) => {
-            return Ok(());
+            Ok(())
         }
         Err(_) => {
-            return Err(anyhow::anyhow!(
-                "Looks like you haven't initializedzs wasmerenv.\n\
+            Err(anyhow::anyhow!(
+                "Looks like you haven't initialized wasmerenv.\n\
                 run `wasmerenv shell | source` to initialize it.\n"
-            ));
+            ))
         }
     }
 }
@@ -325,11 +325,11 @@ pub fn release_to_install(version: &Option<VersionReq>) -> anyhow::Result<Option
     let releases = list_releases_interactively()?;
 
     let release = if let Some(req) = version {
-        releases.into_iter().find(|rel| req.matches(&rel.version())).clone()
+        releases.into_iter().find(|rel| req.matches(&rel.version()))
     } else {
         releases.first().cloned()
     };
-    return Ok(release);
+    Ok(release)
 }
 
 

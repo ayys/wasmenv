@@ -24,7 +24,7 @@ fn setup_exec(version: Option<VersionReq>) -> anyhow::Result<PathBuf> {
         download_and_install_wasmer(&release, &dest_dir)?;
     };
 
-    return Ok(dest_dir);
+    Ok(dest_dir)
 }
 
 
