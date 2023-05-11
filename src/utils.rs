@@ -349,7 +349,7 @@ mod tests {
     #[test]
     fn test_list_releases() -> anyhow::Result<()> {
         let releases = list_releases()?;
-        assert!(releases.len() > 0);
+        assert!(!releases.is_empty());
         Ok(())
     }
 
@@ -374,12 +374,12 @@ mod tests {
     fn test_version_from_version_string() {
         // Test the case where the version string is valid
         let version_string = "wasmer 1.0.0".to_string();
-        let version = version_from_version_string(version_string.clone()).unwrap();
+        let version = version_from_version_string(version_string).unwrap();
         assert_eq!(version.to_string(), "1.0.0");
 
         // Test the case where the version string is invalid
         let version_string = "invalid version string".to_string();
-        let result = version_from_version_string(version_string.clone());
+        let result = version_from_version_string(version_string);
         assert!(result.is_err());
         assert_eq!(
             result.unwrap_err().to_string(),
