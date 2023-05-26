@@ -1,23 +1,19 @@
-# wasmerenv
+# wasmenv
 
-`wasmerenv` is a Rust-based version manager for Wasmer, a WebAssembly runtime. This project allows you to easily switch between different versions of Wasmer, manage installations, and configure your shell environment.
-
-## TODO
-- [ ] Add unit tests, right now there are no tests at all.
-- [ ] Add integration tests with wasmer cli (run a wasm file with different versions of wasmer)
-
+`wasmenv` is a Rust-based version manager for wasm runtimes.  Right now wasmtime supports `wasmer` only.
+This project allows you to easily switch between different versions of `wasmer`, manage installations, and configure your shell environment.
 
 ## Installation
 
-To install `wasmerenv` from crates.io:
+To install `wasmenv` from crates.io:
 ```shell
-cargo install wasmerenv
+cargo install wasmenv
 ```
 
-To develop `wasmerenv`, clone the repository and build it using Cargo:
+To develop `wasmenv`, clone the repository and build it using Cargo:
 ```shell
-git clone https://github.com/ayys/wasmerenv.git
-cd wasmerenv
+git clone https://github.com/ayys/wasmenv.git
+cd wasmenv
 cargo build --release
 export PATH=$PATH:$PWD/target/release
 ```
@@ -25,13 +21,13 @@ export PATH=$PATH:$PWD/target/release
 ## Usage
 
 ```shell
-$ wasmerenv --help
+$ wasmenv --help
 
-Usage: wasmerenv <COMMAND>
+Usage: wasmenv <COMMAND>
 
 Commands:
   current  Display the currently active version of wasmer
-  shell    Configure wasmerenv for a specific shell (bash, zsh, fish)
+  shell    Configure wasmenv for a specific shell (bash, zsh, fish)
   use      Install wasmer
   list     List all the available versions of wasmer
   exec     Run command with wasmer

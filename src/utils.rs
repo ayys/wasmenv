@@ -79,9 +79,9 @@ impl Release {
 /// # Examples
 ///
 /// ```
-/// use wasmerenv::Release;
+/// use wasmenv::Release;
 ///
-/// let releases = wasmerenv::list_releases().unwrap();
+/// let releases = wasmenv::list_releases().unwrap();
 /// for release in releases {
 ///     println!("{} ({})", release.tag_name, release.published_time());
 /// }
@@ -89,7 +89,7 @@ impl Release {
 pub fn list_releases() -> Result<Vec<Release>, reqwest::Error> {
     let url = "https://api.github.com/repos/wasmerio/wasmer/releases";
     let client = reqwest::blocking::Client::new();
-    let response = client.get(url).header("User-Agent", "wasmerenv").send()?;
+    let response = client.get(url).header("User-Agent", "wasmenv").send()?;
     response.json()
 }
 
@@ -187,7 +187,7 @@ pub fn download_wasmer_to_cache(release: &Release) -> anyhow::Result<PathBuf> {
     let filename = release.filename().expect("Filename for wasmer release");
     let filepath = cache_dir()
         .ok_or(anyhow::anyhow!("Could not get cache directory"))?
-        .join("wasmerenv")
+        .join("wasmenv")
         .join(filename);
 
     if filepath.exists() {
@@ -249,39 +249,39 @@ fn create_progress_bar(message: String) -> ProgressBar {
 }
 
 fn create_config_files(config_dir: &Path, wasmer_current_dir: &str) -> anyhow::Result<()> {
-    let filepath = config_dir.join("wasmerenv.sh");
+    let filepath = config_dir.join("wasmenv.sh");
     if !filepath.exists() {
         fs::create_dir_all(config_dir)?;
-        let mut wasmerenv_sh = File::create(filepath)?;
-        let wasmerenv_sh_contents = format!(
+        let mut wasmenv_sh = File::create(filepath)?;
+        let wasmenv_sh_contents = format!(
             "\
             # wasmer config\n\
             export WASMER_DIR=\"{}\"\n\
             export PATH=\"$WASMER_DIR/bin\":$PATH\n",
             wasmer_current_dir
         );
-        wasmerenv_sh.write_all(wasmerenv_sh_contents.as_bytes())?;
+        wasmenv_sh.write_all(wasmenv_sh_contents.as_bytes())?;
     }
-    let filepath = config_dir.join("wasmerenv.fish");
+    let filepath = config_dir.join("wasmenv.fish");
     if !filepath.exists() {
         fs::create_dir_all(config_dir)?;
-        let mut wasmerenv_sh = File::create(filepath)?;
-        let wasmerenv_sh_contents = format!(
+        let mut wasmenv_sh = File::create(filepath)?;
+        let wasmenv_sh_contents = format!(
             "\
             # wasmer config for fish\n\
             set -x WASMER_DIR \"{}\"\n\
             set -x PATH $WASMER_DIR/bin $PATH\n",
             wasmer_current_dir
         );
-        wasmerenv_sh.write_all(wasmerenv_sh_contents.as_bytes())?;
+        wasmenv_sh.write_all(wasmenv_sh_contents.as_bytes())?;
     }
 
     Ok(())
 }
 
 
-/// returns path to wasmerenv config directory
-pub fn wasmerenv_config_dir() -> anyhow::Result<PathBuf> {
+/// returns path to wasmenv config directory
+pub fn wasmenv_config_dir() -> anyhow::Result<PathBuf> {
     let (config_dir, _) = setup_config_directory()?;
     Ok(config_dir)
 }
@@ -289,12 +289,12 @@ pub fn wasmerenv_config_dir() -> anyhow::Result<PathBuf> {
 fn setup_config_directory() -> anyhow::Result<(PathBuf, PathBuf)> {
     let config_dir = config_dir()
         .expect("Config directory should be present")
-        .join("wasmerenv");
+        .join("wasmenv");
     if !config_dir.exists() {
         fs::create_dir_all(&config_dir)?;
     }
     let data_dir = data_dir().expect("Data directory should be present");
-    let wasmer_current_dir = data_dir.join("wasmerenv/current");
+    let wasmer_current_dir = data_dir.join("wasmenv/current");
     if !wasmer_current_dir.exists() {
         fs::create_dir_all(&wasmer_current_dir)?;
     }
@@ -306,16 +306,16 @@ fn setup_config_directory() -> anyhow::Result<(PathBuf, PathBuf)> {
 
 
 
-/// check if WASMERENV_DIR exists, because that means wasmerenv has been properly setup
-pub fn verify_wasmerenv_is_in_path() -> anyhow::Result<()> {
-    match env::var("WASMERENV_DIR") {
+/// check if WASMENV_DIR exists, because that means wasmenv has been properly setup
+pub fn verify_wasmenv_is_in_path() -> anyhow::Result<()> {
+    match env::var("WASMENV_DIR") {
         Ok(_) => {
             Ok(())
         }
         Err(_) => {
             Err(anyhow::anyhow!(
-                "Looks like you haven't initialized wasmerenv.\n\
-                run `wasmerenv shell | source` to initialize it.\n"
+                "Looks like you haven't initialized wasmenv.\n\
+                run `wasmenv shell | source` to initialize it.\n"
             ))
         }
     }
@@ -339,10 +339,10 @@ mod tests {
     use std::env;
 
     #[test]
-    fn test_wasmerenv_config_dir() -> anyhow::Result<()> {
-        let result = wasmerenv_config_dir()?;
+    fn test_wasmenv_config_dir() -> anyhow::Result<()> {
+        let result = wasmenv_config_dir()?;
         assert!(result.exists());
-        assert!(result.ends_with("wasmerenv"));
+        assert!(result.ends_with("wasmenv"));
         Ok(())
     }
 
@@ -354,19 +354,19 @@ mod tests {
     }
 
     #[test]
-    fn test_verify_wasmerenv_is_in_path() {
-        // Test the case where WASMERENV_DIR is set
-        env::set_var("WASMERENV_DIR", "/path/to/wasmerenv");
-        assert!(verify_wasmerenv_is_in_path().is_ok());
+    fn test_verify_wasmenv_is_in_path() {
+        // Test the case where WASMENV_DIR is set
+        env::set_var("WASMENV_DIR", "/path/to/wasmenv");
+        assert!(verify_wasmenv_is_in_path().is_ok());
 
-        // Test the case where WASMERENV_DIR is not set
-        env::remove_var("WASMERENV_DIR");
-        let result = verify_wasmerenv_is_in_path();
+        // Test the case where WASMENV_DIR is not set
+        env::remove_var("WASMENV_DIR");
+        let result = verify_wasmenv_is_in_path();
         assert!(result.is_err());
         assert_eq!(
             result.unwrap_err().to_string(),
-            "Looks like you haven't initialized wasmerenv.\n\
-            run `wasmerenv shell | source` to initialize it.\n"
+            "Looks like you haven't initialized wasmenv.\n\
+            run `wasmenv shell | source` to initialize it.\n"
         );
     }
 
