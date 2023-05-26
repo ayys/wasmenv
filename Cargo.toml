@@ -1,6 +1,6 @@
 [package]
-name = "wasmerenv"
-description = "Wasmerenv - a version manager for wasmer"
+name = "wasmenv"
+description = "wasmenv - a version manager for wasm runtimes"
 license = "MIT"
 version = "0.1.1"
 readme = "readme.md"

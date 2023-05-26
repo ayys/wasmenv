@@ -24,7 +24,7 @@ enum Commands {
         verbose: bool,
     },
 
-    /// Configure wasmerenv for a specific shell (bash, zsh, fish)
+    /// Configure wasmenv for a specific shell (bash, zsh, fish)
     Shell {
         /// Specify a shell name, gives output for current shell if not specified
         name: Option<String>,
