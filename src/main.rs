@@ -34,8 +34,10 @@ enum Commands {
     Use {
         /// Use a specific version. Install the latest version if not specified
         version: Option<VersionReq>,
-        // #[arg(long, short)]
-        // command: Option<String>
+
+        /// install pre-release
+        #[arg(long, default_value="false")]
+        prerelease: bool
     },
 
     /// List all the available versions of wasmer
@@ -58,7 +60,12 @@ enum Commands {
         use_version: Option<VersionReq>,
 
         /// wasmer command to run
-        command: Vec<String>
+        command: Vec<String>,
+
+        /// install pre-release
+        #[arg(long, default_value="false")]
+        prerelease: bool
+
     }
 }
 
@@ -95,9 +102,9 @@ fn main() -> Result<()> {
 
     let command = cli.command;
     match command {
-        Commands::Use { version } => {
+        Commands::Use { version, prerelease } => {
             let version_to_use =  if version.is_some() {version} else {user_specified_version};
-            install(version_to_use)
+            install(version_to_use, prerelease)
         },
         Commands::List {
             version,
@@ -110,9 +117,9 @@ fn main() -> Result<()> {
         Commands::Current {verbose} => current(verbose),
         Commands::Shell { name } => shell(name),
         Commands::Exec {
-            use_version, command
+            use_version, command, prerelease
         } => {
-            exec(use_version, command)
+            exec(use_version, command, prerelease)
         }
     }
 }

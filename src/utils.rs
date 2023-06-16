@@ -218,7 +218,6 @@ pub fn download_and_install_wasmer(release: &Release, dest_dir: &PathBuf) -> any
     if !dest_dir.exists() {
         std::fs::create_dir_all(dest_dir)?;
     }
-
     let file = File::open(filepath)?;
     let decoder = GzDecoder::new(file);
     let mut archive = Archive::new(decoder);
@@ -321,9 +320,11 @@ pub fn verify_wasmenv_is_in_path() -> anyhow::Result<()> {
     }
 }
 
-pub fn release_to_install(version: &Option<VersionReq>) -> anyhow::Result<Option<Release>> {
-    let releases = list_releases_interactively()?;
-
+pub fn release_to_install(version: &Option<VersionReq>, install_prerelease: bool) -> anyhow::Result<Option<Release>> {
+    let mut releases = list_releases_interactively()?;
+    if !install_prerelease {
+        releases.retain(|rel| !rel.prerelease);
+    }
     let release = if let Some(req) = version {
         releases.into_iter().find(|rel| req.matches(&rel.version()))
     } else {
