@@ -2,7 +2,7 @@ use std::{env, fs};
 
 use anyhow;
 
-use dirs::home_dir;
+use dirs::data_dir;
 use semver::VersionReq;
 
 use crate::utils::{
@@ -24,7 +24,7 @@ fn check_release_already_installed(release: &Release) -> anyhow::Result<()> {
     Ok(())
 }
 
-fn install_version(version: Option<VersionReq>) -> anyhow::Result<Release> {
+fn install_version(version: Option<VersionReq>, install_prerelease: bool) -> anyhow::Result<Release> {
     verify_wasmenv_is_in_path()?;
     let current_version = find_current_wasmer();
     let match_with_current_version = current_version.is_some();
@@ -36,7 +36,7 @@ fn install_version(version: Option<VersionReq>) -> anyhow::Result<Release> {
         }
     }
 
-    let release = match release_to_install(&version)? {
+    let release = match release_to_install(&version, install_prerelease)? {
         Some(rel) => rel,
         None => {
             return Err(anyhow::anyhow!("Wasmer release `{}` was not found", version.unwrap()))
@@ -44,9 +44,9 @@ fn install_version(version: Option<VersionReq>) -> anyhow::Result<Release> {
     };
     check_release_already_installed(&release)?;
 
-    let home_dir = home_dir().expect("Could not get home directory");
-    let wasmer_current_dir = home_dir.join(".wasmenv/current");
-    let wasmer_old_dir = home_dir.join(".wasmenv/old");
+    let data_dir = data_dir().expect("Could not get home directory");
+    let wasmer_current_dir = data_dir.join("wasmenv/current");
+    let wasmer_old_dir = data_dir.join(".wasmenv/old");
     if download_and_install_wasmer(&release, &wasmer_current_dir).is_err() && wasmer_current_dir.exists() && wasmer_old_dir.exists() {
         fs::rename(&wasmer_old_dir, &wasmer_current_dir)?;
         println!("Failed to install wasmer. Reverting back to the old version.");
@@ -55,8 +55,8 @@ fn install_version(version: Option<VersionReq>) -> anyhow::Result<Release> {
     Ok(release)
 }
 
-pub fn install(version: Option<VersionReq>) -> anyhow::Result<()> {
-    let release = install_version(version)?;
+pub fn install(version: Option<VersionReq>, install_prerelease: bool) -> anyhow::Result<()> {
+    let release = install_version(version, install_prerelease)?;
     println!(
                 "You are now using wasmer {}. You can run `wasmer --version` to check your version of wasmer.",
                 release.version()

@@ -6,7 +6,7 @@ use crate::utils::{find_current_wasmer, download_and_install_wasmer, release_to_
 
 
 
-fn setup_exec(version: Option<VersionReq>) -> anyhow::Result<PathBuf> {
+fn setup_exec(version: Option<VersionReq>, install_prerelease: bool) -> anyhow::Result<PathBuf> {
     let current = find_current_wasmer();
     let dest_dir = find_current_wasmer_dir()?;
 
@@ -20,7 +20,7 @@ fn setup_exec(version: Option<VersionReq>) -> anyhow::Result<PathBuf> {
         }
     }
     let dest_dir = temp_dir();
-    if let Some(release) = release_to_install(&Some(version))?  {
+    if let Some(release) = release_to_install(&Some(version), install_prerelease)?  {
         download_and_install_wasmer(&release, &dest_dir)?;
     };
 
@@ -28,8 +28,8 @@ fn setup_exec(version: Option<VersionReq>) -> anyhow::Result<PathBuf> {
 }
 
 
-pub fn exec(version: Option<VersionReq>, command: Vec<String>) -> anyhow::Result<()> {
-    let dest_dir = setup_exec(version)?.join("wasmer");
+pub fn exec(version: Option<VersionReq>, command: Vec<String>, install_prerelease: bool) -> anyhow::Result<()> {
+    let dest_dir = setup_exec(version, install_prerelease)?.join("wasmer");
     let wasmer_exe = dest_dir.to_str().unwrap();
 
     let output = Command::new(wasmer_exe).args(command).output()?;
