@@ -1,4 +1,4 @@
-use crate::utils::{find_current_wasmer, verify_wasmenv_is_in_path, find_current_wasmer_dir};
+use crate::utils::{find_current_wasmer, find_current_wasmer_dir, verify_wasmenv_is_in_path};
 
 pub fn current(verbose: bool) -> anyhow::Result<()> {
     verify_wasmenv_is_in_path()?;
