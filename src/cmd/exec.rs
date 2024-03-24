@@ -1,10 +1,10 @@
-use std::{process::Command, env::temp_dir, path::PathBuf};
+use std::{env::temp_dir, path::PathBuf, process::Command};
 
 use semver::VersionReq;
 
-use crate::utils::{find_current_wasmer, download_and_install_wasmer, release_to_install, find_current_wasmer_dir};
-
-
+use crate::utils::{
+    download_and_install_wasmer, find_current_wasmer, find_current_wasmer_dir, release_to_install,
+};
 
 fn setup_exec(version: Option<VersionReq>, install_prerelease: bool) -> anyhow::Result<PathBuf> {
     let current = find_current_wasmer();
@@ -20,15 +20,18 @@ fn setup_exec(version: Option<VersionReq>, install_prerelease: bool) -> anyhow::
         }
     }
     let dest_dir = temp_dir();
-    if let Some(release) = release_to_install(&Some(version), install_prerelease)?  {
+    if let Some(release) = release_to_install(&Some(version), install_prerelease)? {
         download_and_install_wasmer(&release, &dest_dir)?;
     };
 
     Ok(dest_dir)
 }
 
-
-pub fn exec(version: Option<VersionReq>, command: Vec<String>, install_prerelease: bool) -> anyhow::Result<()> {
+pub fn exec(
+    version: Option<VersionReq>,
+    command: Vec<String>,
+    install_prerelease: bool,
+) -> anyhow::Result<()> {
     let dest_dir = setup_exec(version, install_prerelease)?.join("wasmer");
     let wasmer_exe = dest_dir.to_str().unwrap();
 

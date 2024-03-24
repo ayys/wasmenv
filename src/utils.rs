@@ -13,7 +13,7 @@ use std::io::{copy, Write};
 
 use std::{env, fs};
 
-use std::path::{PathBuf, Path};
+use std::path::{Path, PathBuf};
 use std::{
     env::consts::{ARCH, OS},
     process::Command,
@@ -46,12 +46,19 @@ impl Release {
 
     pub fn download_url(&self) -> Option<&str> {
         let filename = get_filename_for_system_architecture(OS, ARCH);
-        self.assets.iter().find(|asset| asset.name == filename).map(|asset| &asset.browser_download_url).map(|x| x.as_str())
+        self.assets
+            .iter()
+            .find(|asset| asset.name == filename)
+            .map(|asset| &asset.browser_download_url)
+            .map(|x| x.as_str())
     }
 
     pub fn filename(&self) -> Option<String> {
         let filename = get_filename_for_system_architecture(OS, ARCH);
-        self.assets.iter().find(|asset| asset.name == filename).map(|asset| format!("{}-{}", self.version(), asset.name))
+        self.assets
+            .iter()
+            .find(|asset| asset.name == filename)
+            .map(|asset| format!("{}-{}", self.version(), asset.name))
     }
 
     pub fn published_time(&self) -> String {
@@ -116,19 +123,17 @@ pub fn get_filename_for_system_architecture(target_os: &str, target_arch: &str) 
     filename.to_string()
 }
 
-
 fn version_from_version_string(version_string: String) -> anyhow::Result<Version> {
     match version_string
         .trim()
         .trim_start_matches("wasmer ")
-        .parse::<Version>() {
-            Ok(version) => {
-                Ok(version)
-            },
-            Err(_) => {
-                Err(anyhow::anyhow!("Could not get wasmer version form the version string"))
-            }
-        }
+        .parse::<Version>()
+    {
+        Ok(version) => Ok(version),
+        Err(_) => Err(anyhow::anyhow!(
+            "Could not get wasmer version form the version string"
+        )),
+    }
 }
 
 /// Searches for the system Wasmer binary and returns its version.
@@ -154,7 +159,6 @@ pub fn find_system_wasmer() -> Option<Version> {
             } else {
                 return None;
             }
-
         }
     }
     None
@@ -176,19 +180,24 @@ pub fn find_current_wasmer() -> Option<Version> {
 
 /// Finds the location of current wasmer executable
 pub fn find_current_wasmer_dir() -> anyhow::Result<PathBuf> {
-    Ok(which("wasmer")?.parent().expect("path to wasmer executable").to_path_buf())
+    Ok(which("wasmer")?
+        .parent()
+        .expect("path to wasmer executable")
+        .to_path_buf())
 }
 
+pub fn wasmenv_cache_dir() -> anyhow::Result<PathBuf> {
+    Ok(cache_dir()
+        .expect("Cache directory should be present")
+        .join("wasmenv"))
+}
 
 pub fn download_wasmer_to_cache(release: &Release) -> anyhow::Result<PathBuf> {
     let url = release
         .download_url()
         .expect("Download url for wasmer release");
     let filename = release.filename().expect("Filename for wasmer release");
-    let filepath = cache_dir()
-        .ok_or(anyhow::anyhow!("Could not get cache directory"))?
-        .join("wasmenv")
-        .join(filename);
+    let filepath = wasmenv_cache_dir()?.join(filename);
 
     if filepath.exists() {
         return Ok(filepath);
@@ -280,7 +289,6 @@ fn create_config_files(config_dir: &Path, wasmer_current_dir: &str) -> anyhow::R
     Ok(())
 }
 
-
 /// returns path to wasmenv config directory
 pub fn wasmenv_config_dir() -> anyhow::Result<PathBuf> {
     let (config_dir, _) = setup_config_directory()?;
@@ -300,29 +308,32 @@ fn setup_config_directory() -> anyhow::Result<(PathBuf, PathBuf)> {
         fs::create_dir_all(&wasmer_current_dir)?;
     }
 
-    create_config_files(&config_dir, wasmer_current_dir.to_str().expect("String containing wasmer current path"))?;
+    create_config_files(
+        &config_dir,
+        wasmer_current_dir
+            .to_str()
+            .expect("String containing wasmer current path"),
+    )?;
 
     Ok((config_dir, wasmer_current_dir))
 }
 
-
-
 /// check if WASMENV_DIR exists, because that means wasmenv has been properly setup
 pub fn verify_wasmenv_is_in_path() -> anyhow::Result<()> {
     match env::var("WASMENV_DIR") {
-        Ok(_) => {
-            Ok(())
-        }
-        Err(_) => {
-            Err(anyhow::anyhow!(
-                "Looks like you haven't initialized wasmenv.\n\
+        Ok(_) => Ok(()),
+        Err(_) => Err(anyhow::anyhow!(
+            "Looks like you haven't initialized wasmenv.\n\
                 run `wasmenv shell | source` to initialize it.\n"
-            ))
-        }
+        )),
     }
 }
 
-pub fn release_to_install(version: &Option<VersionReq>, install_prerelease: bool) -> anyhow::Result<Option<Release>> {
+pub fn release_to_install(
+    version: &Option<VersionReq>,
+    install_prerelease: bool,
+) -> anyhow::Result<Option<Release>> {
+    // match exact by default
     let mut releases = list_releases_interactively()?;
     if !install_prerelease {
         releases.retain(|rel| !rel.prerelease);
@@ -334,7 +345,6 @@ pub fn release_to_install(version: &Option<VersionReq>, install_prerelease: bool
     };
     Ok(release)
 }
-
 
 #[cfg(test)]
 mod tests {

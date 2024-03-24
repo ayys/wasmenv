@@ -6,10 +6,9 @@ use dirs::data_dir;
 use semver::VersionReq;
 
 use crate::utils::{
-    download_and_install_wasmer, find_current_wasmer,
-    verify_wasmenv_is_in_path, Release, release_to_install,
+    download_and_install_wasmer, find_current_wasmer, release_to_install,
+    verify_wasmenv_is_in_path, Release,
 };
-
 
 fn check_release_already_installed(release: &Release) -> anyhow::Result<()> {
     let current_version = find_current_wasmer();
@@ -24,7 +23,10 @@ fn check_release_already_installed(release: &Release) -> anyhow::Result<()> {
     Ok(())
 }
 
-fn install_version(version: Option<VersionReq>, install_prerelease: bool) -> anyhow::Result<Release> {
+fn install_version(
+    version: Option<VersionReq>,
+    install_prerelease: bool,
+) -> anyhow::Result<Release> {
     verify_wasmenv_is_in_path()?;
     let current_version = find_current_wasmer();
     let match_with_current_version = current_version.is_some();
@@ -39,7 +41,10 @@ fn install_version(version: Option<VersionReq>, install_prerelease: bool) -> any
     let release = match release_to_install(&version, install_prerelease)? {
         Some(rel) => rel,
         None => {
-            return Err(anyhow::anyhow!("Wasmer release `{}` was not found", version.unwrap()))
+            return Err(anyhow::anyhow!(
+                "Wasmer release `{}` was not found",
+                version.unwrap()
+            ))
         }
     };
     check_release_already_installed(&release)?;
@@ -47,7 +52,10 @@ fn install_version(version: Option<VersionReq>, install_prerelease: bool) -> any
     let data_dir = data_dir().expect("Could not get home directory");
     let wasmer_current_dir = data_dir.join("wasmenv/current");
     let wasmer_old_dir = data_dir.join(".wasmenv/old");
-    if download_and_install_wasmer(&release, &wasmer_current_dir).is_err() && wasmer_current_dir.exists() && wasmer_old_dir.exists() {
+    if download_and_install_wasmer(&release, &wasmer_current_dir).is_err()
+        && wasmer_current_dir.exists()
+        && wasmer_old_dir.exists()
+    {
         fs::rename(&wasmer_old_dir, &wasmer_current_dir)?;
         println!("Failed to install wasmer. Reverting back to the old version.");
     };
