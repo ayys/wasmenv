@@ -1520,7 +1520,7 @@ checksum = "ed9d5b4305409d1fc9482fee2d7f9bcbf24b3972bf59817ef757e23982242a93"
 
 [[package]]
 name = "wasmenv"
-version = "0.1.4"
+version = "0.1.5"
 dependencies = [
  "anyhow",
  "atty",
