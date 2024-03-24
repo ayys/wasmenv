@@ -1,5 +1,6 @@
+pub mod clear_cache;
+pub mod current;
+pub mod exec;
 pub mod install;
 pub mod list;
-pub mod current;
 pub mod shell;
-pub mod exec;
