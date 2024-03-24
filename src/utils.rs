@@ -228,10 +228,10 @@ pub fn download_and_install_wasmer(release: &Release, dest_dir: &PathBuf) -> any
     Ok(())
 }
 
-
 fn create_progress_bar(message: String) -> ProgressBar {
     let progress_bar = ProgressBar::new_spinner();
     progress_bar.set_style(ProgressStyle::default_spinner().tick_strings(&[
+        "(●     )",
         "( ●    )",
         "(  ●   )",
         "(   ●  )",
@@ -240,6 +240,8 @@ fn create_progress_bar(message: String) -> ProgressBar {
         "(    ● )",
         "(   ●  )",
         "(  ●   )",
+        "( ●    )",
+        "(●     )",
     ]));
     progress_bar.set_message(message);
     progress_bar.enable_steady_tick(Duration::from_millis(100));
