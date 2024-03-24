@@ -2,7 +2,7 @@
 name = "wasmenv"
 description = "wasmenv - a version manager for wasm runtimes"
 license = "MIT"
-version = "0.1.5"
+version = "0.1.6"
 readme = "readme.md"
 edition = "2021"
 
@@ -25,8 +25,3 @@ serde = {version = "1.0.160", features = ["derive"]}
 tar = "0.4.38"
 tempfile = "3.5.0"
 which = "4.4.0"
-
-
-[dependencies.openssl-sys]
-version = "0.9"
-features = ["vendored"]
