@@ -1,11 +1,15 @@
 use clap::{command, Parser, Subcommand};
-use cmd::{install::install, list::list, current::current, shell::shell, exec::exec};
+use cmd::{
+    clear_cache::clear_cache, current::current, exec::exec, install::install, list::list,
+    shell::shell,
+};
 use semver::VersionReq;
-use std::{io::{self, Read}, str::FromStr};
+use std::{
+    io::{self, Read},
+    str::FromStr,
+};
 mod cmd;
 use std::env;
-
-
 
 mod utils;
 use anyhow::Result;
@@ -24,6 +28,9 @@ enum Commands {
         verbose: bool,
     },
 
+    /// Clears the cache
+    ClearCache {},
+
     /// Configure wasmenv for a specific shell (bash, zsh, fish)
     Shell {
         /// Specify a shell name, gives output for current shell if not specified
@@ -36,8 +43,8 @@ enum Commands {
         version: Option<VersionReq>,
 
         /// install pre-release
-        #[arg(long, default_value="false")]
-        prerelease: bool
+        #[arg(long, default_value = "false")]
+        prerelease: bool,
     },
 
     /// List all the available versions of wasmer
@@ -63,13 +70,12 @@ enum Commands {
         command: Vec<String>,
 
         /// install pre-release
-        #[arg(long, default_value="false")]
-        prerelease: bool
-
-    }
+        #[arg(long, default_value = "false")]
+        prerelease: bool,
+    },
 }
 
-fn get_version_from_stdin()  -> Option<VersionReq> {
+fn get_version_from_stdin() -> Option<VersionReq> {
     if atty::is(atty::Stream::Stdin) {
         return None;
     }
@@ -79,16 +85,14 @@ fn get_version_from_stdin()  -> Option<VersionReq> {
     }
     let stripped_buffer = buffer.strip_suffix('\n')?;
 
-
     buffer = stripped_buffer.to_string();
     Some(VersionReq::from_str(&buffer).unwrap())
 }
 
-
 fn get_version_from_env() -> Option<VersionReq> {
     match env::var("WASMER_VERSION") {
         Ok(val) => Some(VersionReq::from_str(&val).unwrap()),
-        Err(_) => None
+        Err(_) => None,
     }
 }
 
@@ -96,30 +100,44 @@ fn main() -> Result<()> {
     let cli = Cli::parse();
 
     let stdin_version = get_version_from_stdin();
-    let user_specified_version = if stdin_version.is_some() {stdin_version} else {
+    let user_specified_version = if stdin_version.is_some() {
+        stdin_version
+    } else {
         get_version_from_env()
     };
 
     let command = cli.command;
     match command {
-        Commands::Use { version, prerelease } => {
-            let version_to_use =  if version.is_some() {version} else {user_specified_version};
+        Commands::Use {
+            version,
+            prerelease,
+        } => {
+            let version_to_use = if version.is_some() {
+                version
+            } else {
+                user_specified_version
+            };
             install(version_to_use, prerelease)
-        },
+        }
         Commands::List {
             version,
             count,
             all,
         } => {
-            let version_to_use =  if version.is_some() {version} else {user_specified_version};
+            let version_to_use = if version.is_some() {
+                version
+            } else {
+                user_specified_version
+            };
             list(version_to_use, count, all)
-        },
-        Commands::Current {verbose} => current(verbose),
+        }
+        Commands::Current { verbose } => current(verbose),
         Commands::Shell { name } => shell(name),
         Commands::Exec {
-            use_version, command, prerelease
-        } => {
-            exec(use_version, command, prerelease)
-        }
+            use_version,
+            command,
+            prerelease,
+        } => exec(use_version, command, prerelease),
+        Commands::ClearCache {} => clear_cache(),
     }
 }
