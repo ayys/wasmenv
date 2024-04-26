@@ -1297,6 +1297,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "symlink"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a7973cce6668464ea31f176d85b13c7ab3bba2cb3b77a2ed26abd7801688010a"
+
+[[package]]
 name = "syn"
 version = "1.0.109"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1616,7 +1622,7 @@ checksum = "ed9d5b4305409d1fc9482fee2d7f9bcbf24b3972bf59817ef757e23982242a93"
 
 [[package]]
 name = "wasmenv"
-version = "0.2.1"
+version = "0.2.2"
 dependencies = [
  "anyhow",
  "atty",
@@ -1631,6 +1637,7 @@ dependencies = [
  "reqwest",
  "semver-eq",
  "serde",
+ "symlink",
  "tar",
  "tempfile",
  "which",

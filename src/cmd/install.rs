@@ -50,15 +50,30 @@ fn install_version(
     check_release_already_installed(&release)?;
 
     let data_dir = data_dir().expect("Could not get home directory");
+    let version = release.version().to_string();
+    let wasmer_dir_path = format!("wasmenv/{version}");
+    let wasmer_version_dir = data_dir.join(wasmer_dir_path);
     let wasmer_current_dir = data_dir.join("wasmenv/current");
     let wasmer_old_dir = data_dir.join(".wasmenv/old");
-    if download_and_install_wasmer(&release, &wasmer_current_dir).is_err()
-        && wasmer_current_dir.exists()
+    if download_and_install_wasmer(&release, &wasmer_version_dir).is_err()
+        && wasmer_version_dir.exists()
         && wasmer_old_dir.exists()
     {
         fs::rename(&wasmer_old_dir, &wasmer_current_dir)?;
         println!("Failed to install wasmer. Reverting back to the old version.");
     };
+    let current_wasmer = &wasmer_current_dir.join("bin/wasmer");
+    let versioned_wasmer = &wasmer_version_dir.join("bin/wasmer");
+    if current_wasmer.exists() {
+        fs::remove_file(current_wasmer)?;
+    }
+    fs::create_dir_all(&wasmer_current_dir)?;
+
+    symlink::symlink_file(versioned_wasmer, current_wasmer)?;
+    symlink::symlink_file(
+        versioned_wasmer,
+        wasmer_current_dir.join(format!("bin/wasmer{version}")),
+    )?;
     env::set_var("WASMER_DIR", &wasmer_current_dir);
     Ok(release)
 }
