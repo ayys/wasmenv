@@ -2,7 +2,7 @@
 name = "wasmenv"
 description = "wasmenv - a version manager for wasm runtimes"
 license = "MIT"
-version = "0.2.0"
+version = "0.2.1"
 readme = "readme.md"
 edition = "2021"
 
@@ -20,12 +20,8 @@ flate2 = "1.0.25"
 indicatif = "0.17.3"
 is_executable = "1.0.1"
 reqwest = { version = "0.11.16", features = ["blocking", "json", "rustls-tls"] }
-semver = "1.0.17"
+semver = {path = "./vendor/semver"}
 serde = {version = "1.0.160", features = ["derive"]}
 tar = "0.4.38"
 tempfile = "3.5.0"
 which = "4.4.0"
-
-
-[patch.crates-io]
-semver = {path = "./vendor/semver"}
