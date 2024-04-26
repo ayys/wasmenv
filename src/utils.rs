@@ -6,7 +6,7 @@ use which::which;
 
 use flate2::read::GzDecoder;
 use is_executable::IsExecutable;
-use semver::{Version, VersionReq};
+use semver_eq::{Version, VersionReq};
 use serde::{Deserialize, Serialize};
 use std::fs::{create_dir_all, File};
 use std::io::{copy, Write};

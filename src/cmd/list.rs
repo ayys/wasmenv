@@ -1,4 +1,4 @@
-use semver::VersionReq;
+use semver_eq::VersionReq;
 
 use comfy_table::{Attribute, Cell, Color, Table};
 

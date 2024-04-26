@@ -1,6 +1,6 @@
 use std::{env::temp_dir, path::PathBuf, process::Command};
 
-use semver::VersionReq;
+use semver_eq::VersionReq;
 
 use crate::utils::{
     download_and_install_wasmer, find_current_wasmer, find_current_wasmer_dir, release_to_install,

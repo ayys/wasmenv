@@ -3,7 +3,7 @@ use std::{env, fs};
 use anyhow;
 
 use dirs::data_dir;
-use semver::VersionReq;
+use semver_eq::VersionReq;
 
 use crate::utils::{
     download_and_install_wasmer, find_current_wasmer, release_to_install,

@@ -3,7 +3,7 @@ use cmd::{
     clear_cache::clear_cache, current::current, exec::exec, install::install, list::list,
     shell::shell,
 };
-use semver::VersionReq;
+use semver_eq::VersionReq;
 use std::{
     io::{self, Read},
     str::FromStr,

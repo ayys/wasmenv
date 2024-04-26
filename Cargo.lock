@@ -1162,8 +1162,10 @@ dependencies = [
 ]
 
 [[package]]
-name = "semver"
-version = "1.0.17"
+name = "semver-eq"
+version = "1.0.22"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ebeb7aadd34b84da6b114c9992ed67d28fecdb98ad946942bc76c3fce195af66"
 
 [[package]]
 name = "serde"
@@ -1627,7 +1629,7 @@ dependencies = [
  "indicatif",
  "is_executable",
  "reqwest",
- "semver",
+ "semver-eq",
  "serde",
  "tar",
  "tempfile",
