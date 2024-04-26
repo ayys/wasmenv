@@ -25,3 +25,7 @@ serde = {version = "1.0.160", features = ["derive"]}
 tar = "0.4.38"
 tempfile = "3.5.0"
 which = "4.4.0"
+
+
+[patch.crates-io]
+semver = {path = "./vendor/semver"}
