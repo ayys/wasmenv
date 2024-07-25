@@ -69,6 +69,9 @@ fn install_version(
     }
     fs::create_dir_all(&wasmer_current_dir)?;
 
+    // make sure the current wasmer directory exists
+    let parent_dir = current_wasmer.parent().unwrap();
+    fs::create_dir_all(parent_dir)?;
     symlink::symlink_file(versioned_wasmer, current_wasmer)?;
     symlink::symlink_file(
         versioned_wasmer,
