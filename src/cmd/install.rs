@@ -2,12 +2,11 @@ use std::{env, fs};
 
 use anyhow;
 
-use dirs::data_dir;
 use semver_eq::VersionReq;
 
 use crate::utils::{
     download_and_install_wasmer, find_current_wasmer, release_to_install,
-    verify_wasmenv_is_in_path, Release,
+    verify_wasmenv_is_in_path, wasmenv_data_dir, Release,
 };
 
 fn check_release_already_installed(release: &Release) -> anyhow::Result<()> {
@@ -49,11 +48,11 @@ fn install_version(
     };
     check_release_already_installed(&release)?;
 
-    let data_dir = data_dir().expect("Could not get home directory");
+    let data_dir = wasmenv_data_dir().expect("Getting wasmenv data directory");
     let version = release.version().to_string();
-    let wasmer_dir_path = format!("wasmenv/{version}");
+    let wasmer_dir_path = &version;
     let wasmer_version_dir = data_dir.join(wasmer_dir_path);
-    let wasmer_current_dir = data_dir.join("wasmenv/current");
+    let wasmer_current_dir = data_dir.join("current");
     let wasmer_old_dir = data_dir.join(".wasmenv/old");
     if download_and_install_wasmer(&release, &wasmer_version_dir).is_err()
         && wasmer_version_dir.exists()

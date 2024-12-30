@@ -2,14 +2,14 @@ use chrono::DateTime;
 use directories::BaseDirs;
 use dirs::{cache_dir, config_dir, data_dir};
 
-use which::which;
-
+use anyhow::Context;
 use flate2::read::GzDecoder;
 use is_executable::IsExecutable;
 use semver_eq::{Version, VersionReq};
 use serde::{Deserialize, Serialize};
 use std::fs::{create_dir_all, File};
 use std::io::{copy, Write};
+use which::which;
 
 use std::{env, fs};
 
@@ -192,6 +192,12 @@ pub fn wasmenv_cache_dir() -> anyhow::Result<PathBuf> {
         .join("wasmenv"))
 }
 
+pub fn wasmenv_data_dir() -> anyhow::Result<PathBuf> {
+    Ok(data_dir()
+        .expect("Cache directory should be present")
+        .join("wasmenv"))
+}
+
 pub fn download_wasmer_to_cache(release: &Release) -> anyhow::Result<PathBuf> {
     let url = release
         .download_url()
@@ -225,7 +231,7 @@ pub fn download_and_install_wasmer(release: &Release, dest_dir: &PathBuf) -> any
     let progress_bar = create_progress_bar(format!("Installing wasmer {}...", release.version()));
 
     if !dest_dir.exists() {
-        std::fs::create_dir_all(dest_dir)?;
+        std::fs::create_dir_all(dest_dir).context(format!("Create {:?}", dest_dir))?;
     }
     let file = File::open(filepath)?;
     let decoder = GzDecoder::new(file);
