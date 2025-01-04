@@ -32,7 +32,7 @@ fn install_version(
         Some(rel) => rel,
         None => {
             return Err(anyhow::anyhow!(
-                "Wasmer release `{}` was not found",
+                "Wasmer release `{}` was not found.\nIf you are trying to install a prerelease version, try passing the `--prerelease` flag.",
                 version.unwrap()
             ))
         }
